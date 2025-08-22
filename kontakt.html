@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kontakt - My Website</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="logo">
+                <a href="index.html">Logo</a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="om-os.html">Om os</a></li>
+                <li><a href="kontakt.html">Kontakt</a></li>
+                <li><a href="#" class="login-btn" id="login-popup-btn">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero" style="height: 50vh;">
+            <div class="hero-text">
+                <h1>Kontakt Os</h1>
+            </div>
+        </section>
+
+        <section class="booking">
+            <h2>Send os en besked</h2>
+            <form class="booking-form" id="contact-form">
+                <div class="form-row">
+                    <input type="text" name="name" placeholder="Dit Navn" required>
+                    <input type="email" name="email" placeholder="Din Email" required>
+                </div>
+                <div class="form-row">
+                    <textarea name="message" placeholder="Din Besked" rows="5" class="full-width" required></textarea>
+                </div>
+                <button type="submit">Send Besked</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 Firmanavn. Alle rettigheder forbeholdes.</p>
+            <ul class="footer-links">
+                <li><a href="#">Privatlivspolitik</a></li>
+                <li><a href="#">Betingelser for brug</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <div class="form-container">
+                <div id="login-form-container">
+                    <h2>Login</h2>
+                    <form id="login-form">
+                        <input type="email" name="email" placeholder="Your Email" required>
+                        <input type="password" name="password" placeholder="Password" required>
+                        <button type="submit">Login</button>
+                    </form>
+                    <p>Don't have an account? <a href="#" id="show-signup">Sign up</a></p>
+                </div>
+                <div id="signup-form-container" style="display: none;">
+                    <h2>Sign Up</h2>
+                    <form id="signup-form">
+                        <input type="text" name="name" placeholder="Your Name" required>
+                        <input type="email" name="email" placeholder="Your Email" required>
+                        <input type="password" name="password" placeholder="Password" required>
+                        <input type="tel" name="phone" placeholder="Phone Number" required>
+                        <button type="submit">Sign Up</button>
+                    </form>
+                    <p>Already have an account? <a href="#" id="show-login">Log in</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script src="js/login.js"></script>
+    <script src="js/kontakt.js"></script>
+</body>
+</html>

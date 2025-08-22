@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: #ffffff;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .container {
+            min-height: 100vh;
+            padding: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2563eb;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            border: 2px solid #dbeafe;
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .stat-card.blue-bg {
+            background: #eff6ff;
+        }
+
+        .stat-content h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 4px;
+        }
+
+        .stat-content p {
+            font-size: 14px;
+            color: #2563eb;
+            font-weight: 500;
+        }
+
+        .stat-card:not(.blue-bg) .stat-content p {
+            color: #6b7280;
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            color: #3b82f6;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .chart-card {
+            background: #ffffff;
+            border: 2px solid #dbeafe;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 16px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .time-filter {
+            display: flex;
+            gap: 4px;
+        }
+
+        .filter-btn {
+            padding: 6px 12px;
+            border: 1px solid #dbeafe;
+            background: #ffffff;
+            color: #2563eb;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: #eff6ff;
+        }
+
+        .filter-btn.active {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .bottom-section {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 24px;
+        }
+
+        .category-filters {
+            margin-bottom: 16px;
+        }
+
+        .category-time-filter {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 12px;
+            flex-wrap: nowrap;
+        }
+
+        .category-time-filter .filter-btn {
+            padding: 4px 8px;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+
+        .category-specific-filter {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+
+        .select-box {
+            padding: 4px 8px;
+            border: 1px solid #dbeafe;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #374151;
+            font-size: 11px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .month-select {
+            width: 80px;
+        }
+
+        .year-select {
+            width: 60px;
+        }
+
+        .clear-btn {
+            padding: 4px 8px;
+            border: 1px solid #dbeafe;
+            background: #ffffff;
+            color: #2563eb;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+
+        .clear-btn:hover {
+            background: #eff6ff;
+        }
+
+        .revenue-orders-container {
+            padding: 0 8px;
+        }
+
+        .revenue-orders-chart {
+            height: 320px !important;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bottom-section {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+
+            .chart-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .category-specific-filter {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Analytics Dashboard</h1>
+            <p>Overview of your business metrics</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card blue-bg">
+                <div class="stat-content">
+                    <h3>$28,000</h3>
+                    <p>Total Revenue</p>
+                </div>
+                <div class="stat-icon">💰</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-content">
+                    <h3>1,878</h3>
+                    <p>Total Orders</p>
+                </div>
+                <div class="stat-icon">📦</div>
+            </div>
+
+            <div class="stat-card blue-bg">
+                <div class="stat-content">
+                    <h3>342</h3>
+                    <p>New Customers</p>
+                </div>
+                <div class="stat-icon">👥</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-content">
+                    <h3>+12.5%</h3>
+                    <p>Growth Rate</p>
+                </div>
+                <div class="stat-icon">📈</div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Revenue Trend</h3>
+                    <div class="time-filter" id="revenueFilter">
+                        <button class="filter-btn" data-period="1month">1M</button>
+                        <button class="filter-btn" data-period="3months">3M</button>
+                        <button class="filter-btn active" data-period="6months">6M</button>
+                        <button class="filter-btn" data-period="1year">1Y</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Visitor Bookings</h3>
+                    <div class="time-filter" id="visitsFilter">
+                        <button class="filter-btn active" data-period="1month">1M</button>
+                        <button class="filter-btn" data-period="3months">3M</button>
+                        <button class="filter-btn" data-period="6months">6M</button>
+                        <button class="filter-btn" data-period="1year">1Y</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="visitsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Section -->
+        <div class="bottom-section">
+            <div class="chart-card">
+                <h3>Sales by Category</h3>
+                <div class="category-filters">
+                    <div class="category-time-filter" id="categoryFilter">
+                        <button class="filter-btn" data-period="1month">1M</button>
+                        <button class="filter-btn" data-period="3months">3M</button>
+                        <button class="filter-btn active" data-period="6months">6M</button>
+                        <button class="filter-btn" data-period="1year">1Y</button>
+                    </div>
+                    <div class="category-specific-filter">
+                        <select class="select-box month-select" id="monthSelect">
+                            <option value="">Month</option>
+                            <option value="January">January</option>
+                            <option value="February">February</option>
+                            <option value="March">March</option>
+                            <option value="April">April</option>
+                            <option value="May">May</option>
+                            <option value="June">June</option>
+                            <option value="July">July</option>
+                            <option value="August">August</option>
+                            <option value="September">September</option>
+                            <option value="October">October</option>
+                            <option value="November">November</option>
+                            <option value="December">December</option>
+                        </select>
+                        <select class="select-box year-select" id="yearSelect">
+                            <option value="">Year</option>
+                            <option value="2022">2022</option>
+                            <option value="2023">2023</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                        </select>
+                        <button class="clear-btn" id="clearBtn" style="display: none;">Clear</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Revenue vs Orders</h3>
+                    <div class="time-filter" id="combinedFilter">
+                        <button class="filter-btn" data-period="1month">1M</button>
+                        <button class="filter-btn" data-period="3months">3M</button>
+                        <button class="filter-btn active" data-period="6months">6M</button>
+                        <button class="filter-btn" data-period="1year">1Y</button>
+                    </div>
+                </div>
+                <div class="revenue-orders-container">
+                    <div class="chart-container revenue-orders-chart">
+                        <canvas id="combinedChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Separate state for each chart
+        let revenueState = { period: '6months' };
+        let visitsState = { period: '1month' };
+        let combinedState = { period: '6months' };
+        let categoryState = { period: '6months', month: '', year: '' };
+
+        // Chart instances
+        let revenueChart, visitsChart, categoryChart, combinedChart;
+
+        // Data generation functions
+        function generateRevenueData(period) {
+            const baseRevenue = [4000, 3000, 5000, 4500, 6000, 5500, 4800, 5200, 4700, 5800, 5300, 6200];
+            
+            switch (period) {
+                case '1month':
+                    // Daily data for 30 days
+                    const dailyRevenue = [130, 145, 120, 155, 140, 125, 135, 160, 138, 172, 149, 133, 158, 142, 167, 151, 156, 143, 169, 148, 154, 141, 162, 150, 164, 147, 159, 144, 166, 152];
+                    return {
+                        labels: dailyRevenue.map((_, i) => `Day ${i + 1}`),
+                        data: dailyRevenue
+                    };
+                case '3months':
+                    const weeklyRevenue3M = [1150, 980, 1220, 1350, 1180, 1080, 1250, 1420, 1190, 1300, 1380, 1450];
+                    return {
+                        labels: weeklyRevenue3M.map((_, i) => `W${i + 1}`),
+                        data: weeklyRevenue3M
+                    };
+                case '6months':
+                    return {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        data: baseRevenue.slice(0, 6)
+                    };
+                case '1year':
+                    return {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        data: baseRevenue
+                    };
+                default:
+                    return { labels: [], data: [] };
+            }
+        }
+
+        function generateVisitsData(period) {
+            const generateBookingData = (total) => {
+                const bookingRate = 0.15 + Math.random() * 0.1;
+                const booked = Math.round(total * bookingRate);
+                return { booked, notBooked: total - booked };
+            };
+
+            switch (period) {
+                case '1month':
+                    const dailyVisits = [45, 52, 38, 61, 48, 55, 42, 59, 44, 67, 53, 49, 58, 46, 63, 51, 57, 43, 65, 48, 56, 41, 62, 50, 54, 47, 60, 44, 66, 52];
+                    return {
+                        labels: dailyVisits.map((_, i) => `Day ${i + 1}`),
+                        booked: dailyVisits.map(v => generateBookingData(v).booked),
+                        notBooked: dailyVisits.map(v => generateBookingData(v).notBooked)
+                    };
+                case '3months':
+                    const weeklyData3M = [420, 380, 445, 520, 490, 435, 465, 510, 475, 455, 485, 500];
+                    return {
+                        labels: weeklyData3M.map((_, i) => `W${i + 1}`),
+                        booked: weeklyData3M.map(v => generateBookingData(v).booked),
+                        notBooked: weeklyData3M.map(v => generateBookingData(v).notBooked)
+                    };
+                case '6months':
+                    const monthlyData6M = [4800, 5200, 5600, 5200, 6100, 5800];
+                    return {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        booked: [720, 780, 840, 780, 1220, 870],
+                        notBooked: [4080, 4420, 4760, 4420, 4880, 4930]
+                    };
+                case '1year':
+                    return {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        booked: [720, 780, 840, 780, 1220, 870, 810, 1180, 765, 855, 795, 1240],
+                        notBooked: [4080, 4420, 4760, 4420, 4880, 4930, 4590, 4720, 4335, 4845, 4505, 4960]
+                    };
+                default:
+                    const weeklyVisits = [120, 180, 160, 200, 250, 190, 140];
+                    return {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        booked: weeklyVisits.map(v => generateBookingData(v).booked),
+                        notBooked: weeklyVisits.map(v => generateBookingData(v).notBooked)
+                    };
+            }
+        }
+
+        function generateCombinedData(period) {
+            const baseRevenue = [4000, 3000, 5000, 4500, 6000, 5500, 4800, 5200, 4700, 5800, 5300, 6200];
+            const baseOrders = [240, 198, 380, 290, 420, 350, 310, 360, 280, 410, 340, 450];
+            
+            switch (period) {
+                case '1month':
+                    return {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                        revenue: [1200, 1400, 1100, 1300],
+                        orders: [85, 95, 75, 90]
+                    };
+                case '3months':
+                    const weeklyRevenue3M = [1150, 980, 1220, 1350, 1180, 1080, 1250, 1420, 1190, 1300, 1380, 1450];
+                    const weeklyOrders3M = [72, 58, 78, 85, 71, 65, 79, 88, 75, 82, 86, 90];
+                    return {
+                        labels: weeklyRevenue3M.map((_, i) => `W${i + 1}`),
+                        revenue: weeklyRevenue3M,
+                        orders: weeklyOrders3M
+                    };
+                case '6months':
+                    return {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        revenue: baseRevenue.slice(0, 6),
+                        orders: baseOrders.slice(0, 6)
+                    };
+                case '1year':
+                    return {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        revenue: baseRevenue,
+                        orders: baseOrders
+                    };
+                default:
+                    return { labels: [], revenue: [], orders: [] };
+            }
+        }
+
+        function generateCategoryData(period, month, year) {
+            const categoryDataSets = {
+                '1month': [120, 85, 45, 30],
+                '3months': [350, 280, 150, 120],
+                '6months': [400, 300, 200, 150],
+                '1year': [850, 720, 480, 380]
+            };
+
+            if (month && year) {
+                const monthMultipliers = {
+                    'January': 0.8, 'February': 0.7, 'March': 0.9, 'April': 1.0,
+                    'May': 1.1, 'June': 1.2, 'July': 1.0, 'August': 0.9,
+                    'September': 1.1, 'October': 1.3, 'November': 1.4, 'December': 1.5
+                };
+                const yearMultiplier = year === '2024' ? 1.0 : year === '2023' ? 0.9 : 1.1;
+                const monthMultiplier = monthMultipliers[month] || 1.0;
+                
+                return [
+                    Math.round(100 * monthMultiplier * yearMultiplier),
+                    Math.round(75 * monthMultiplier * yearMultiplier),
+                    Math.round(50 * monthMultiplier * yearMultiplier),
+                    Math.round(35 * monthMultiplier * yearMultiplier)
+                ];
+            }
+
+            return categoryDataSets[period] || categoryDataSets['6months'];
+        }
+
+        // Chart creation functions
+        function createRevenueChart() {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            const data = generateRevenueData(revenueState.period);
+            
+            if (revenueChart) revenueChart.destroy();
+            
+            revenueChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Revenue',
+                        data: data.data,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#e5e7eb' },
+                            ticks: { color: '#6b7280' }
+                        },
+                        x: {
+                            grid: { color: '#e5e7eb' },
+                            ticks: { 
+                                color: '#6b7280',
+                                maxTicksLimit: revenueState.period === '1month' ? 8 : undefined
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createVisitsChart() {
+            const ctx = document.getElementById('visitsChart').getContext('2d');
+            const data = generateVisitsData(visitsState.period);
+            
+            if (visitsChart) visitsChart.destroy();
+            
+            visitsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'People who didn\'t book',
+                        data: data.notBooked,
+                        backgroundColor: '#93c5fd',
+                        borderColor: '#60a5fa',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        order: 2
+                    }, {
+                        label: 'People who booked',
+                        data: data.booked,
+                        backgroundColor: '#3b82f6',
+                        borderColor: '#2563eb',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        order: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: { display: false },
+                            ticks: { 
+                                color: '#6b7280',
+                                maxTicksLimit: visitsState.period === '1month' ? 8 : undefined
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            grid: { color: '#e5e7eb' },
+                            ticks: { color: '#6b7280' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#6b7280' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createCategoryChart() {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const data = generateCategoryData(categoryState.period, categoryState.month, categoryState.year);
+            
+            if (categoryChart) categoryChart.destroy();
+            
+            categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Electronics', 'Clothing', 'Books', 'Home & Garden'],
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { 
+                                padding: 20,
+                                color: '#6b7280' 
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createCombinedChart() {
+            const ctx = document.getElementById('combinedChart').getContext('2d');
+            const data = generateCombinedData(combinedState.period);
+            
+            if (combinedChart) combinedChart.destroy();
+            
+            combinedChart = new Chart(ctx, {
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        type: 'bar',
+                        label: 'Revenue',
+                        data: data.revenue,
+                        backgroundColor: '#93c5fd',
+                        borderColor: '#60a5fa',
+                        borderWidth: 1,
+                        yAxisID: 'y',
+                        barThickness: 25,
+                        maxBarThickness: 25
+                    }, {
+                        type: 'line',
+                        label: 'Orders',
+                        data: data.orders,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 10
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: { color: '#e5e7eb' },
+                            ticks: { 
+                                color: '#6b7280',
+                                padding: 10
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            ticks: { 
+                                color: '#6b7280',
+                                padding: 10
+                            }
+                        },
+                        x: {
+                            grid: { color: '#e5e7eb' },
+                            ticks: { 
+                                color: '#6b7280',
+                                maxTicksLimit: combinedState.period === '3months' ? undefined : 12
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#6b7280' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Event listeners
+        document.getElementById('revenueFilter').addEventListener('click', (e) => {
+            if (e.target.dataset.period) {
+                document.querySelectorAll('#revenueFilter .filter-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                revenueState.period = e.target.dataset.period;
+                createRevenueChart();
+            }
+        });
+
+        document.getElementById('visitsFilter').addEventListener('click', (e) => {
+            if (e.target.dataset.period) {
+                document.querySelectorAll('#visitsFilter .filter-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                visitsState.period = e.target.dataset.period;
+                createVisitsChart();
+            }
+        });
+
+        document.getElementById('combinedFilter').addEventListener('click', (e) => {
+            if (e.target.dataset.period) {
+                document.querySelectorAll('#combinedFilter .filter-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                combinedState.period = e.target.dataset.period;
+                createCombinedChart();
+            }
+        });
+
+        document.getElementById('categoryFilter').addEventListener('click', (e) => {
+            if (e.target.dataset.period) {
+                document.querySelectorAll('#categoryFilter .filter-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                categoryState.period = e.target.dataset.period;
+                categoryState.month = '';
+                categoryState.year = '';
+                document.getElementById('monthSelect').value = '';
+                document.getElementById('yearSelect').value = '';
+                document.getElementById('clearBtn').style.display = 'none';
+                createCategoryChart();
+            }
+        });
+
+        document.getElementById('monthSelect').addEventListener('change', (e) => {
+            categoryState.month = e.target.value;
+            if (categoryState.month && categoryState.year) {
+                document.querySelectorAll('#categoryFilter .filter-btn').forEach(btn => btn.classList.remove('active'));
+                categoryState.period = '';
+            }
+            updateClearButton();
+            createCategoryChart();
+        });
+
+        document.getElementById('yearSelect').addEventListener('change', (e) => {
+            categoryState.year = e.target.value;
+            if (categoryState.month && categoryState.year) {
+                document.querySelectorAll('#categoryFilter .filter-btn').forEach(btn => btn.classList.remove('active'));
+                categoryState.period = '';
+            }
+            updateClearButton();
+            createCategoryChart();
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            categoryState.month = '';
+            categoryState.year = '';
+            categoryState.period = '6months';
+            document.getElementById('monthSelect').value = '';
+            document.getElementById('yearSelect').value = '';
+            document.getElementById('clearBtn').style.display = 'none';
+            document.querySelectorAll('#categoryFilter .filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('#categoryFilter .filter-btn[data-period="6months"]').classList.add('active');
+            createCategoryChart();
+        });
+
+        function updateClearButton() {
+            const clearBtn = document.getElementById('clearBtn');
+            if (categoryState.month || categoryState.year) {
+                clearBtn.style.display = 'block';
+            } else {
+                clearBtn.style.display = 'none';
+            }
+        }
+
+        // Initialize charts
+        window.addEventListener('load', function() {
+            createRevenueChart();
+            createVisitsChart();
+            createCategoryChart();
+            createCombinedChart();
+            
+            // Animation
+            const cards = document.querySelectorAll('.stat-card, .chart-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+
+        // Initialize cards with animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.stat-card, .chart-card');
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            });
+        });
+    </script>
+</body>
+</html>
